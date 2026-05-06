@@ -1,0 +1,13 @@
+Package: BaMMI
+Title: Bayesian Microbiome-Metabolite Integration
+Version: 1.0.0
+Authors@R: 
+    person("Kai", "Jiang", , "Kai.Jiang@uth.tmc.edu", role = c("aut", "cre"))
+Description: A Bayesian framework for microbiome and metabolite integration,
+             including Bayesian sparse regression for univariate metabolite outcomes
+             and Bayesian reduced rank regression for multivariate outcomes.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.3
+Imports: stats, MASS, truncnorm, MCMCpack, mvnfast, Matrix, coda
