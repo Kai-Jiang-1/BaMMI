@@ -10,6 +10,7 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
-Imports: stats, MASS, truncnorm, MCMCpack, mvnfast, Matrix, coda
+Imports: stats, MASS, truncnorm, MCMCpack, mvnfast, Matrix, coda, Rcpp
+LinkingTo: Rcpp, RcppArmadillo
 URL: https://github.com/Kai-Jiang-1/BaMMI
 BugReports: https://github.com/Kai-Jiang-1/BaMMI/issues

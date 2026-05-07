@@ -3,6 +3,8 @@
 #' Produces a bar plot of posterior probabilities of inclusion (PPI)
 #' for selected features only, with vertical feature index labels.
 #'
+#' @importFrom graphics axis barplot layout legend par plot.new text
+#'
 #' @param bsrmm List. Output from \code{\link{bsrmmgibbs}}.
 #' @param nburnin Integer. Number of burn-in iterations.
 #' @param niter Integer. Number of posterior sampling iterations.

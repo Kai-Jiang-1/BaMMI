@@ -3,6 +3,8 @@
 #' Produces a forest plot of posterior mean estimates and 95 percent
 #' credible intervals for features selected by \code{\link{bsrmmgibbs}}.
 #'
+#' @importFrom graphics abline axis layout legend lines par plot.new points
+#'
 #' @param bsrmm List. Output from \code{\link{bsrmmgibbs}}.
 #' @param nburnin Integer. Number of burn-in iterations.
 #' @param niter Integer. Number of posterior sampling iterations.

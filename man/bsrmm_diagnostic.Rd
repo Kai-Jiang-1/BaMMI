@@ -61,7 +61,7 @@ Y <- as.matrix(outcome[train_ind, ])
 n <- nrow(X); p <- ncol(X); c <- 100
 N <- rbind(diag(p), matrix(c, 1, p))
 Q <- mydata$Q; a <- rep(-12, p); nop <- floor(n / 2)
-nburnin <- 5000; niter <- 10000
+nburnin <- 1000; niter <- 2000
 
 ## Run multiple chains
 chain1 <- bsrmmgibbs(nburnin=nburnin, niter=niter, p=p, nop=nop,

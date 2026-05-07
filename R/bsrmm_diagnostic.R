@@ -7,6 +7,8 @@
 #'
 #' @importFrom stats density
 #' @importFrom coda mcmc mcmc.list gelman.diag effectiveSize
+#' @importFrom grDevices dev.new graphics.off adjustcolor
+#' @importFrom graphics abline axis barplot layout legend lines mtext par plot.new points text
 #'
 #' @param bsrmm_list List. A list of at least 2 outputs from
 #'   \code{\link{bsrmmgibbs}}, each representing one chain.
@@ -57,7 +59,7 @@
 #' n <- nrow(X); p <- ncol(X); c <- 100
 #' N <- rbind(diag(p), matrix(c, 1, p))
 #' Q <- mydata$Q; a <- rep(-12, p); nop <- floor(n / 2)
-#' nburnin <- 5000; niter <- 10000
+#' nburnin <- 1000; niter <- 2000
 #'
 #' ## Run multiple chains
 #' chain1 <- bsrmmgibbs(nburnin=nburnin, niter=niter, p=p, nop=nop,
