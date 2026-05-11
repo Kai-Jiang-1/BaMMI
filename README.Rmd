@@ -1,0 +1,191 @@
+---
+output: github_document
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+# BaMMI: Bayesian Microbiome-Metabolite Integration
+
+BaMMI is an R package for Bayesian microbiome-metabolite data 
+integration. It provides two models:
+
+1. **BSRMM** - Bayesian sparse regression for microbiome-metabolite data integration for univariate metabolite outcomes. 
+2. **MALMO** - Microbiome association with left-censored and missing metabolic outputs for multivariate metabolite outcomes.
+
+## Installation
+
+You can install the development version of BaMMI from GitHub with:
+
+```{r, eval = FALSE}
+# install.packages("devtools")
+devtools::install_github("Kai-Jiang-1/BaMMI")
+```
+
+## BSRMM
+
+### Data Simulation
+
+```{r bsrmm_data, eval = FALSE}
+library(BaMMI)
+
+set.seed(123)
+mydata <- gen_missing_value(
+  n          = 100,
+  p          = 200,
+  snr        = 1,
+  proportion = 0.30,
+  type       = "mnar0.33"
+)
+
+cat("True features:", which(mydata$coeffs[,1] != 0), "\n")
+cat("Missing proportion:", mean(mydata$Y_miss == 0), "(1/3 MNAR + 2/3 MAR)\n")
+```
+
+### Run BSRMM Gibbs Sampler
+
+```{r bsrmm_run, eval = FALSE}
+## Prepare inputs
+predictor <- mydata$X
+outcome   <- mydata$Y_miss
+
+## Standardize predictors
+stand     <- list()
+stand$mux <- colMeans(predictor)
+stand$Sx  <- apply(predictor, 2, sd)
+predictor <- apply(predictor, 2, function(x) (x - mean(x)) / sd(x))
+
+## Train/test split
+set.seed(33)
+train_ind <- sort(sample(nrow(predictor),
+                   size    = round(0.7 * nrow(predictor)),
+                   replace = FALSE))
+
+X <- as.matrix(predictor[train_ind, ])
+Y <- as.matrix(outcome[train_ind, ])
+n <- nrow(X); p <- ncol(X); c <- 100
+N <- rbind(diag(p), matrix(c, 1, p))
+Q <- mydata$Q; a <- rep(-12, p)
+nop <- floor(n / 2)
+
+## Run Gibbs sampler
+bsrmm <- bsrmmgibbs(
+  nburnin = 10000,
+  niter   = 20000,
+  p = p, nop = nop,
+  Y = Y, X = X, N = N,
+  a = a, Q = Q, n = n
+)
+
+## Posterior probabilities of inclusion
+PPI      <- colMeans(bsrmm$gamma[(10000+2):(10000+20000+1), ])
+selected <- which(PPI > 0.5)
+cat("Selected features:", selected, "\n")
+
+## Table of true vs selected features
+table(
+  True = ifelse(1:p %in% which(mydata$coeffs[,1] != 0), "Yes", "No"),
+  Selected = ifelse(1:p %in% selected, "Yes", "No")
+)
+```
+
+### Visualization
+
+```{r bsrmm_plot, eval = FALSE, fig.width=10, fig.height=8}
+## PPI plot
+bsrmm_ppi(bsrmm, nburnin = 10000, niter = 20000)
+
+## Forest plot
+bsrmm_forest(bsrmm, nburnin = 10000, niter = 20000, stand = stand)
+
+## MCMC diagnostics (multiple chains)
+chain1 <- bsrmmgibbs(nburnin=10000, niter=20000, p=p, nop=nop,
+                     Y=Y, X=X, N=N, a=a, Q=Q, n=n)
+chain2 <- bsrmmgibbs(nburnin=10000, niter=20000, p=p, nop=nop,
+                     Y=Y, X=X, N=N, a=a, Q=Q, n=n)
+chain3 <- bsrmmgibbs(nburnin=10000, niter=20000, p=p, nop=nop,
+                     Y=Y, X=X, N=N, a=a, Q=Q, n=n)
+chain4 <- bsrmmgibbs(nburnin=10000, niter=20000, p=p, nop=nop,
+                     Y=Y, X=X, N=N, a=a, Q=Q, n=n)
+bsrmm_diagnostic(list(chain1, chain2, chain3, chain4), nburnin=10000, niter=20000)
+```
+
+## MALMO
+
+> **Note:** Since MALMO is computationally expensive, we also provide
+> MATLAB code at
+> [https://github.com/Kai-Jiang-1/MALMO](https://github.com/Kai-Jiang-1/MALMO).
+> We recommend running the MALMO model under a high performance
+> computing environment for large datasets, for both the R package
+> and MATLAB code. Here, we use a relatively small sample size to
+> illustrate the model.
+
+### Data Simulation
+
+```{r malmo_data, eval = FALSE}
+set.seed(123)
+mydata_mv <- gen_missing_value_mv(
+  n          = 50,
+  p          = 20,
+  q          = 2,
+  snr        = 1,
+  proportion = 0.30,
+  type       = "mnar0.33"
+)
+
+cat("True features:", mydata_mv$p_true, "\n")
+```
+
+### Run MALMO Gibbs Sampler
+
+```{r malmo_run, eval = FALSE}
+result <- malmo_gibbs(
+  Y       = mydata_mv$Y_miss,
+  X       = mydata_mv$X,
+  nburn   = 1000,
+  niter   = 2000,
+  display = FALSE
+)
+
+## Summarize C matrix
+C_summary <- malmo_summarize(
+  result$C_result,
+  nburn = 1000,
+  niter = 2000
+)
+
+## Selected features
+selected <- which(rowSums(abs(C_summary$mean)) > 0)
+cat("Selected features:", selected, "\n")
+cat("True features:", mydata_mv$p_true, "\n")
+
+## Table of true vs selected features
+table(True = ifelse(1:nrow(C_summary$mean) %in% mydata_mv$p_true, "Yes", "No"),
+      Selected = ifelse(1:nrow(C_summary$mean) %in% selected, "Yes", "No"))
+```
+
+### Visualization
+
+```{r malmo_plot, eval = FALSE}
+## Correlation heatmaps
+malmo_plot_correlation(Y = mydata_mv$Y_true, X = mydata_mv$X)
+
+## Venn/UpSet diagram
+malmo_plot_venn(C_summary)
+
+## MCMC diagnostics
+malmo_diagnostic(result, nburn = 1000, niter = 2000)
+```
+
+## Contact
+
+- **Author**: Kai Jiang
+- **Email**: Kai.Jiang@uth.tmc.edu
+- **GitHub**: https://github.com/Kai-Jiang-1/BaMMI
+- **Institution**: UTHealth Houston
