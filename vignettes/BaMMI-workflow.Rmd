@@ -1,0 +1,341 @@
+---
+title: "BaMMI Workflow: Bayesian Microbiome-Metabolite Integration"
+author: "Kai Jiang"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{BaMMI Workflow}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse  = TRUE,
+  comment   = "#>",
+  fig.width = 8,
+  fig.height = 6,
+  warning   = FALSE,
+  message   = FALSE
+)
+```
+
+## 1. Introduction
+
+**BaMMI** (Bayesian Microbiome-Metabolite Integration) is an R package
+for integrating microbiome and metabolite data using Bayesian methods.
+It provides two main models:
+
+- **BSRMM** (Bayesian Sparse Regression for Microbiome-Metabolite data):
+  For univariate metabolite outcomes with missing value imputation.
+  Performs simultaneous variable selection and missing value imputation
+  using a Gibbs sampler.
+
+- **MALMO** (Microbial Association with Left-censored Missing Metabolic
+  Outputs): For multivariate metabolite outcomes using Bayesian reduced
+  rank regression with missing value imputation.
+
+### When to use BSRMM vs MALMO?
+
+| | BSRMM | MALMO |
+|--|-------|-------|
+| **Outcome** | Univariate (single metabolite) | Multivariate (multiple metabolites) |
+| **Coefficient** | Vector beta (p x 1) | Matrix C (p x q) |
+| **Missing data** | MNAR/MAR/Mixed | MNAR/MAR/Mixed |
+| **Rcpp** | No | Yes |
+| **Speed** | Fast | Slow (HPC recommended) |
+
+---
+
+## 2. Installation
+
+```{r install, eval = FALSE}
+# Install from GitHub
+devtools::install_github("Kai-Jiang-1/BaMMI")
+```
+
+```{r load}
+library(BaMMI)
+```
+
+---
+
+## 3. Project 1: BSRMM
+
+### 3.1 Data Simulation
+
+The `gen_missing_value()` function generates simulated microbiome
+compositional data with correlated covariate structure and missing
+values in the outcome. It supports four missing data mechanisms:
+MNAR, MAR, mixed MNAR/MAR (1/3 + 2/3), and mixed MNAR/MAR (2/3 + 1/3).
+
+```{r bsrmm_sim}
+set.seed(123)
+mydata <- gen_missing_value(
+  n          = 100,   # number of observations
+  p          = 200,   # number of microbiome features
+  snr        = 1,     # signal to noise ratio
+  proportion = 0.30,  # proportion of missing values
+  type       = "mnar0.33"  # 1/3 MNAR + 2/3 MAR
+)
+
+# Check output structure
+str(mydata)
+
+# True signal features
+cat("True features:", which(mydata$coeffs[, 1] != 0), "\n")
+cat("Total true features:", sum(mydata$coeffs[, 1] != 0), "\n")
+cat("Missing proportion:", mean(mydata$Y_miss == 0), "\n")
+```
+
+### 3.2 Data Preparation
+
+Before running the Gibbs sampler, we need to:
+1. Standardize the predictor matrix
+2. Split into train/test sets
+3. Set up model parameters
+
+```{r bsrmm_prep}
+## Prepare inputs
+predictor <- mydata$X
+outcome   <- mydata$Y_miss
+
+## Standardize predictors
+stand     <- list()
+stand$mux <- colMeans(predictor)
+stand$Sx  <- apply(predictor, 2, sd)
+predictor <- apply(predictor, 2, function(x) (x - mean(x)) / sd(x))
+
+## Train/test split (70/30)
+set.seed(33)
+train_ind <- sort(sample(nrow(predictor),
+                   size    = round(0.7 * nrow(predictor)),
+                   replace = FALSE))
+
+predictor_train <- predictor[train_ind, ]
+predictor_test  <- predictor[-train_ind, ]
+outcome_train   <- outcome[train_ind, ]
+outcome_test    <- outcome[-train_ind, ]
+
+## Set up model parameters
+X   <- as.matrix(predictor_train)
+Y   <- as.matrix(outcome_train)
+n   <- nrow(X)
+p   <- ncol(X)
+c   <- 100
+N   <- rbind(diag(x = 1, nrow = p, ncol = p),
+             matrix(data = c, nrow = 1, ncol = p))
+Q   <- mydata$Q
+a0  <- -12
+a   <- rep(a0, p)
+nop <- floor(n / 2)
+
+cat("Training set: n =", n, ", p =", p, "\n")
+cat("Test set: n =", nrow(predictor_test), "\n")
+```
+
+### 3.3 Running the BSRMM Gibbs Sampler
+
+The `bsrmmgibbs()` function runs the Gibbs sampler for the BSRMM model.
+For demonstration we use a small number of iterations. For real data
+analysis, we recommend `nburnin = 10000` and `niter = 20000`.
+
+```{r bsrmm_run}
+set.seed(42)
+bsrmm <- bsrmmgibbs(
+  nburnin = 1000,
+  niter   = 2000,
+  p       = p,
+  nop     = nop,
+  Y       = Y,
+  X       = X,
+  N       = N,
+  a       = a,
+  Q       = Q,
+  n       = n,
+  display = FALSE
+)
+
+cat("Gibbs sampler completed!\n")
+cat("Output components:", names(bsrmm), "\n")
+```
+
+### 3.4 Results
+
+#### Posterior Probabilities of Inclusion (PPI)
+
+```{r bsrmm_ppi}
+## Compute PPI
+nburnin <- 1000
+niter   <- 2000
+PPI      <- colMeans(bsrmm$gamma[(nburnin+2):(nburnin+niter+1), ])
+selected <- which(PPI > 0.5)
+
+cat("Selected features (PPI > 0.5):", selected, "\n")
+cat("True features:", which(mydata$coeffs[, 1] != 0), "\n")
+
+## Confusion table
+tab <- table(
+  Truth    = ifelse(1:p %in% which(mydata$coeffs[,1] != 0),
+                    "True", "False"),
+  Selected = ifelse(1:p %in% selected, "Yes", "No")
+)
+print(tab)
+
+## Performance metrics
+TP  <- sum(PPI > 0.5  & mydata$coeffs[, 1] == 1)
+FP  <- sum(PPI > 0.5  & mydata$coeffs[, 1] == 0)
+FN  <- sum(PPI <= 0.5 & mydata$coeffs[, 1] == 1)
+TN  <- sum(PPI <= 0.5 & mydata$coeffs[, 1] == 0)
+TPR <- TP / (TP + FN)
+FPR <- FP / (FP + TN)
+FDR <- ifelse((FP + TP) > 0, FP / (FP + TP), 0)
+cat(sprintf("TP=%d | FP=%d | FN=%d | TN=%d\n", TP, FP, FN, TN))
+cat(sprintf("TPR=%.3f | FPR=%.3f | FDR=%.3f\n", TPR, FPR, FDR))
+```
+
+#### PPI Plot
+
+```{r bsrmm_ppi_plot, fig.width = 9, fig.height = 5}
+bsrmm_ppi(bsrmm, nburnin = nburnin, niter = niter)
+```
+
+#### Forest Plot
+
+```{r bsrmm_forest_plot, fig.width = 9, fig.height = 6}
+bsrmm_forest(bsrmm, nburnin = nburnin, niter = niter, stand = stand)
+```
+
+### 3.5 MCMC Diagnostics
+
+For MCMC diagnostics, we run multiple chains and compute the
+Gelman-Rubin Rhat statistic. Values close to 1 indicate convergence.
+
+```{r bsrmm_diag, fig.width = 10, fig.height = 8}
+## Run 2 chains for demonstration
+chain1 <- bsrmmgibbs(nburnin=1000, niter=2000, p=p, nop=nop,
+                     Y=Y, X=X, N=N, a=a, Q=Q, n=n)
+chain2 <- bsrmmgibbs(nburnin=1000, niter=2000, p=p, nop=nop,
+                     Y=Y, X=X, N=N, a=a, Q=Q, n=n)
+
+diag_result <- bsrmm_diagnostic(
+  bsrmm_list = list(chain1, chain2),
+  nburnin    = 1000,
+  niter      = 2000
+)
+```
+
+---
+
+## 4. Project 2: MALMO
+
+> **Note:** Since MALMO is computationally expensive, we also provide
+> MATLAB code at
+> [https://github.com/Kai-Jiang-1/MALMO](https://github.com/Kai-Jiang-1/MALMO).
+> We recommend running the MALMO model under a high performance
+> computing environment for large datasets. Here, we use a small
+> sample size to illustrate the model.
+
+### 4.1 Data Simulation
+
+The `gen_missing_value_mv()` function generates simulated microbiome
+data with multivariate metabolite outcomes and missing values.
+
+```{r malmo_sim}
+set.seed(123)
+mydata_mv <- gen_missing_value_mv(
+  n          = 50,    # number of observations
+  p          = 20,    # number of microbiome features
+  q          = 3,     # number of metabolite outcomes
+  snr        = 1,     # signal to noise ratio
+  proportion = 0.20,  # proportion of missing values
+  type       = "mnar0.33"
+)
+
+# Check output
+str(mydata_mv)
+cat("True features:", mydata_mv$p_true, "\n")
+cat("Missing proportion:", mean(mydata_mv$Y_miss == 0), "\n")
+cat("Y dimensions:", dim(mydata_mv$Y_miss), "\n")
+cat("X dimensions:", dim(mydata_mv$X), "\n")
+```
+
+### 4.2 Running the MALMO Gibbs Sampler
+
+```{r malmo_run}
+result <- malmo_gibbs(
+  Y       = mydata_mv$Y_miss,
+  X       = mydata_mv$X,
+  nburn   = 500,
+  niter   = 1000,
+  display = FALSE
+)
+
+cat("MALMO completed!\n")
+cat("Output components:", names(result), "\n")
+```
+
+### 4.3 Results
+
+#### Summarize Coefficient Matrix C
+
+```{r malmo_summarize}
+C_summary <- malmo_summarize(
+  result$C_result,
+  nburn = 500,
+  niter = 1000
+)
+
+## Selected features
+selected_mv <- which(rowSums(abs(C_summary$mean)) > 0)
+cat("Selected features:", selected_mv, "\n")
+cat("True features    :", mydata_mv$p_true, "\n")
+
+## Confusion table
+tab_mv <- table(
+  Truth    = ifelse(1:nrow(C_summary$mean) %in% mydata_mv$p_true,
+                    "True", "False"),
+  Selected = ifelse(1:nrow(C_summary$mean) %in% selected_mv,
+                    "Yes", "No")
+)
+print(tab_mv)
+```
+
+#### Correlation Heatmaps
+
+```{r malmo_correlation, fig.width = 10, fig.height = 5}
+malmo_plot_correlation(
+  Y = mydata_mv$Y_true,
+  X = mydata_mv$X
+)
+```
+
+#### Heatmap of Selected Features
+
+```{r malmo_heatmap, fig.width = 8, fig.height = 6}
+malmo_plot_heatmap(C_summary)
+```
+
+#### Venn Diagram of Selected Features
+
+```{r malmo_venn, fig.width = 7, fig.height = 7}
+venn_result <- malmo_plot_venn(C_summary)
+```
+
+### 4.4 MCMC Diagnostics
+
+```{r malmo_diag, fig.width = 10, fig.height = 8}
+diag_mv <- malmo_diagnostic(
+  result = result,
+  nburn  = 500,
+  niter  = 1000
+)
+```
+
+---
+
+## 5. Session Info
+
+```{r session_info}
+sessionInfo()
+```

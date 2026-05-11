@@ -46,11 +46,6 @@ bsrmm <- bsrmmgibbs(
 
 ## Example: MALMO
 
-> **Note:** Since MALMO is computationally expensive, we also provide
-> MATLAB code at <https://github.com/Kai-Jiang-1/MALMO>. We recommend
-> running the MALMO model under a high performance computing environment
-> for large datasets, for both the R package and MATLAB code.
-
 ``` r
 set.seed(123)
 mydata_mv <- gen_missing_value_mv(
