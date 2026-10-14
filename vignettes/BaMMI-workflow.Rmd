@@ -39,7 +39,7 @@ knitr::opts_chunk$set(
 
 ```{r install, eval = FALSE}
 # Install from GitHub
-devtools::install_github("Kai-Jiang-1/BaMMI")
+devtools::install_github("Kai-Jiang-1/BaMMI", build_vignettes = TRUE)
 ```
 
 ```{r load}

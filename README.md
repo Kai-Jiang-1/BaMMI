@@ -22,7 +22,7 @@ You can install the development version of BaMMI from GitHub with:
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("Kai-Jiang-1/BaMMI")
+devtools::install_github("Kai-Jiang-1/BaMMI", build_vignettes = TRUE)
 ```
 
 ## Example: BSRMM
