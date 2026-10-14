@@ -8,9 +8,8 @@
 #' @importFrom stats acf density
 #' @importFrom coda mcmc effectiveSize geweke.diag
 #' @importFrom graphics par layout plot lines abline mtext legend
-#'   polygon title
+#' @importFrom graphics polygon title
 #' @importFrom grDevices adjustcolor pdf dev.off
-#'
 #' @param result List. Output from \code{\link{malmo_gibbs}}.
 #' @param nburn Integer. Number of burn-in iterations.
 #' @param niter Integer. Number of posterior sampling iterations.

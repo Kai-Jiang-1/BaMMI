@@ -20,8 +20,7 @@ gen_missing_value_mv(
 
 \item{q}{Integer. Number of metabolite outcomes. Must be at least 2.}
 
-\item{snr}{Numeric. Signal-to-noise ratio controlling the noise level.
-Must be positive.}
+\item{snr}{Numeric. Signal-to-noise ratio controlling the noise level.}
 
 \item{proportion}{Numeric. Proportion of missing values in the
 outcome matrix (between 0 and 1, exclusive).}
@@ -50,6 +49,7 @@ coefficient, 0 otherwise.}
 \item{X}{An n x p standardized microbiome feature matrix.}
 \item{p_true}{Integer vector of true signal feature indices.}
 \item{data_type}{Character. The missing data mechanism used.}
+\item{sigma}{Numeric. Noise standard deviation used for the outcomes.}
 }
 }
 \description{

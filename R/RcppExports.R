@@ -2,10 +2,10 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 fast_kron_diag_kronT <- function(X, A, w) {
-    .Call('_BaMMI_fast_kron_diag_kronT', PACKAGE = 'BaMMI', X, A, w)
+    .Call(`_BaMMI_fast_kron_diag_kronT`, X, A, w)
 }
 
 kron_function <- function(A, B) {
-    .Call('_BaMMI_kron_function', PACKAGE = 'BaMMI', A, B)
+    .Call(`_BaMMI_kron_function`, A, B)
 }
 

@@ -4,7 +4,7 @@
 \alias{bsrmmgibbs}
 \title{Gibbs Sampler for Bayesian Sparse Regression with Missing Value Imputation}
 \usage{
-bsrmmgibbs(nburnin, niter, p, nop, Y, X, N, a, Q, n, display = FALSE)
+bsrmmgibbs(nburnin, niter, p, nop, Y, X, N, a, Q, n, tau = 1, display = FALSE)
 }
 \arguments{
 \item{nburnin}{Integer. Number of burn-in iterations.}
@@ -36,6 +36,8 @@ encoding prior knowledge about predictor correlations. Use
 \code{diag(0, p)} for independent predictors.}
 
 \item{n}{Integer. Number of observations.}
+
+\item{tau}{Numeric. Prior scale for the regression coefficients. Default 1.}
 
 \item{display}{Logical. If \code{TRUE}, prints progress every 5000
 iterations. Default is \code{FALSE}.}
@@ -83,7 +85,7 @@ and truncated normal sampling for missing value imputation.
 ## Generate simulation data
 set.seed(123)
 mydata <- gen_missing_value(
-  n = 100, p = 200, snr = 1,
+  n = 200, p = 200, snr = 1,
   proportion = 0.30,
   type = "mnar0.33"
 )

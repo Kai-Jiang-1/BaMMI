@@ -1,23 +1,28 @@
 #' Summarize Posterior Samples from MALMO
 #'
 #' Computes posterior mean and 95 percent credible intervals from
-#' the Gibbs sampler output of \code{\link{malmo_gibbs}}. Posterior
-#' mean estimates are set to zero when the 95 percent credible interval
-#' crosses zero.
+#' the Gibbs sampler output of \code{\link{malmo_gibbs}}. By default,
+#' posterior mean estimates are set to zero when the 95 percent
+#' credible interval crosses zero.
 #'
 #' @importFrom stats quantile
 #'
 #' @param posterior_list List. A list of posterior sample matrices
 #'   from \code{\link{malmo_gibbs}} (e.g. \code{result$C_result}).
-#' @param nburn Integer. Number of burn-in iterations to discard.
+#' @param nburn Integer. Number of burn in iterations to discard.
 #' @param niter Integer. Number of posterior sampling iterations.
 #' @param thin Integer. Thinning interval for posterior samples.
 #'   Default is 1 (no thinning).
+#' @param set_zero Logical. If \code{TRUE} (default), posterior mean
+#'   entries are set to zero when the 95 percent credible interval
+#'   crosses zero. Use \code{FALSE} for quantities that are not
+#'   coefficients, such as imputed outcomes (\code{Y_mvi_result}).
 #'
 #' @return A list containing:
 #' \describe{
-#'   \item{mean}{Matrix of posterior mean estimates. Entries are set
-#'     to zero when the 95 percent credible interval crosses zero.}
+#'   \item{mean}{Matrix of posterior mean estimates. If
+#'     \code{set_zero = TRUE}, entries are set to zero when the
+#'     95 percent credible interval crosses zero.}
 #'   \item{lower}{Matrix of lower 95 percent credible interval bounds.}
 #'   \item{upper}{Matrix of upper 95 percent credible interval bounds.}
 #' }
@@ -46,19 +51,21 @@
 #' )
 #' C_est <- C_summary$mean
 #'
-#' ## Summarize imputed Y
+#' ## Summarize imputed Y (no zero thresholding)
 #' Y_summary <- malmo_summarize(
 #'   result$Y_mvi_result,
-#'   nburn = 1000,
-#'   niter = 2000
+#'   nburn    = 1000,
+#'   niter    = 2000,
+#'   set_zero = FALSE
 #' )
 #' Y_mvi <- Y_summary$mean
 #' }
-malmo_summarize <- function(posterior_list, nburn, niter, thin = 1) {
+malmo_summarize <- function(posterior_list, nburn, niter, thin = 1,
+                            set_zero = TRUE) {
 
   ## Thinning indices ----
   total_iter      <- nburn + niter
-  posterior_index <- seq(nburn, total_iter, by = thin)
+  posterior_index <- seq(nburn + 1, total_iter, by = thin)
 
   ## Convert list to array ----
   posterior_array <- simplify2array(posterior_list[posterior_index])
@@ -69,8 +76,10 @@ malmo_summarize <- function(posterior_list, nburn, niter, thin = 1) {
   upper_ci <- apply(posterior_array, c(1, 2), quantile, probs = 0.975)
 
   ## Set to zero if 95% CI crosses zero ----
-  cross_zero           <- which(lower_ci * upper_ci < 0, arr.ind = TRUE)
-  mean_est[cross_zero] <- 0
+  if (set_zero) {
+    cross_zero           <- which(lower_ci * upper_ci < 0, arr.ind = TRUE)
+    mean_est[cross_zero] <- 0
+  }
 
   ## Return ----
   return(list(

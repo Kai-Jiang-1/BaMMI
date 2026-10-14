@@ -103,7 +103,7 @@ malmo_gibbs <- function(Y, X, nburn = 1000, niter = 2000,
   phi_result    <- vector("list", nburn + niter)
   Z_result      <- vector("list", nburn + niter)
   Y_mvi_result  <- vector("list", nburn + niter)
-  theta_result  <- numeric(nburn + niter + 1)
+  theta_result  <- numeric(nburn + niter)
 
   ## Initialize parameters ----
 
@@ -224,8 +224,8 @@ malmo_gibbs <- function(Y, X, nburn = 1000, niter = 2000,
     ## Sample Sigma ----
     Residuals      <- Y - matrix(1, nrow = n, ncol = 1) %*% t(beta0) -
       X %*% C
-    scale_sigma2   <- 0.5 * colSums(Residuals^2)
-    sigma2_values  <- rinvgamma(q, shape = n/2, scale = scale_sigma2)
+    scale_sigma2   <- 0.5 * (colSums(Residuals^2) + beta0^2)
+    sigma2_values  <- rinvgamma(q, shape = (n + 1)/2, scale = scale_sigma2)
     Sigma          <- diag(sigma2_values, nrow = q, ncol = q)
     Sigma_result[[i]] <- Sigma
 

@@ -17,8 +17,7 @@ gen_missing_value(
 
 \item{p}{Integer. Number of microbiome features. Must be at least 10.}
 
-\item{snr}{Numeric. Signal-to-noise ratio controlling the noise level.
-Must be positive.}
+\item{snr}{Numeric. Signal-to-noise ratio controlling the noise level.}
 
 \item{proportion}{Numeric. Proportion of missing values (between 0 and 1,
 exclusive).}
@@ -47,6 +46,7 @@ values set to 0.}
 \item{data_type}{Character. The missing data mechanism used.}
 \item{Q}{A p x p matrix encoding prior correlation information for
 the Bayesian sparse regression model.}
+\item{sigma}{Numeric. Noise standard deviation used for the outcome.}
 }
 }
 \description{
@@ -59,7 +59,7 @@ multiple missing data mechanisms.
 ## Generate correlated microbiome data with MNAR0.33 missing mechanism
 set.seed(123)
 mydata <- gen_missing_value(
-  n = 100, p = 200, snr = 1,
+  n = 200, p = 200, snr = 1,
   proportion = 0.30,
   type = "mnar0.33"
 )
@@ -69,7 +69,7 @@ which(mydata$coeffs[, 1] == 1)
 ## MAR missing mechanism
 set.seed(123)
 mydata_mar <- gen_missing_value(
-  n = 100, p = 200, snr = 1,
+  n = 200, p = 200, snr = 1,
   proportion = 0.30,
   type = "mar"
 )

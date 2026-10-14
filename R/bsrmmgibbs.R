@@ -30,6 +30,7 @@
 #' @param Q Numeric matrix of dimension p x p. Prior correlation matrix
 #'   encoding prior knowledge about predictor correlations. Use
 #'   \code{diag(0, p)} for independent predictors.
+#' @param tau Numeric. Prior scale for the regression coefficients. Default 1.
 #' @param n Integer. Number of observations.
 #' @param display Logical. If \code{TRUE}, prints progress every 5000
 #'   iterations. Default is \code{FALSE}.
@@ -73,7 +74,7 @@
 #' ## Generate simulation data
 #' set.seed(123)
 #' mydata <- gen_missing_value(
-#'   n = 100, p = 200, snr = 1,
+#'   n = 200, p = 200, snr = 1,
 #'   proportion = 0.30,
 #'   type = "mnar0.33"
 #' )
@@ -141,11 +142,10 @@
 #'   Truth     = mydata$coeffs[, 1]
 #' )
 #' print(tab)}
-bsrmmgibbs <- function(nburnin, niter, p, nop, Y, X, N, a, Q, n,
+bsrmmgibbs <- function(nburnin, niter, p, nop, Y, X, N, a, Q, n, tau = 1,
                        display = FALSE) {
 
   ## Fixed hyperparameters ----
-  tau           <- 1
   nu            <- 0
   omega         <- 0
   theta_a_shape <- 1

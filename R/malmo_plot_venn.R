@@ -5,7 +5,7 @@
 #' an UpSet plot using base R.
 #'
 #' @importFrom graphics par plot rect text segments barplot axis
-#'   mtext title points plot.new legend layout polygon
+#' @importFrom graphics mtext title points plot.new legend layout polygon
 #' @importFrom grDevices adjustcolor dev.size
 #'
 #' @param C_summary List. Output from \code{\link{malmo_summarize}}

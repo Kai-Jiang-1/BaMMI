@@ -14,7 +14,6 @@
 #' @param p Integer. Number of microbiome features. Must be at least 10.
 #' @param q Integer. Number of metabolite outcomes. Must be at least 2.
 #' @param snr Numeric. Signal-to-noise ratio controlling the noise level.
-#'   Must be positive.
 #' @param proportion Numeric. Proportion of missing values in the
 #'   outcome matrix (between 0 and 1, exclusive).
 #' @param type Character. Missing data mechanism, one of:
@@ -40,6 +39,7 @@
 #'   \item{X}{An n x p standardized microbiome feature matrix.}
 #'   \item{p_true}{Integer vector of true signal feature indices.}
 #'   \item{data_type}{Character. The missing data mechanism used.}
+#'   \item{sigma}{Numeric. Noise standard deviation used for the outcomes.}
 #' }
 #'
 #' @export
@@ -162,6 +162,7 @@ gen_missing_value_mv <- function(
 
   ## Error matrix ----
   sigma <- mean(abs(C[p_true, ])) / snr
+
   E     <- matrix(rnorm(n * q, mean = 0, sd = sigma),
                   nrow = n, ncol = q)
 
@@ -218,6 +219,7 @@ gen_missing_value_mv <- function(
     C_idx     = C_idx,
     X         = X,
     p_true    = p_true,
-    data_type = type
+    data_type = type,
+    sigma     = sigma
   ))
 }

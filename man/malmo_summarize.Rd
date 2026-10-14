@@ -4,33 +4,39 @@
 \alias{malmo_summarize}
 \title{Summarize Posterior Samples from MALMO}
 \usage{
-malmo_summarize(posterior_list, nburn, niter, thin = 1)
+malmo_summarize(posterior_list, nburn, niter, thin = 1, set_zero = TRUE)
 }
 \arguments{
 \item{posterior_list}{List. A list of posterior sample matrices
 from \code{\link{malmo_gibbs}} (e.g. \code{result$C_result}).}
 
-\item{nburn}{Integer. Number of burn-in iterations to discard.}
+\item{nburn}{Integer. Number of burn in iterations to discard.}
 
 \item{niter}{Integer. Number of posterior sampling iterations.}
 
 \item{thin}{Integer. Thinning interval for posterior samples.
 Default is 1 (no thinning).}
+
+\item{set_zero}{Logical. If \code{TRUE} (default), posterior mean
+entries are set to zero when the 95 percent credible interval
+crosses zero. Use \code{FALSE} for quantities that are not
+coefficients, such as imputed outcomes (\code{Y_mvi_result}).}
 }
 \value{
 A list containing:
 \describe{
-\item{mean}{Matrix of posterior mean estimates. Entries are set
-to zero when the 95 percent credible interval crosses zero.}
+\item{mean}{Matrix of posterior mean estimates. If
+\code{set_zero = TRUE}, entries are set to zero when the
+95 percent credible interval crosses zero.}
 \item{lower}{Matrix of lower 95 percent credible interval bounds.}
 \item{upper}{Matrix of upper 95 percent credible interval bounds.}
 }
 }
 \description{
 Computes posterior mean and 95 percent credible intervals from
-the Gibbs sampler output of \code{\link{malmo_gibbs}}. Posterior
-mean estimates are set to zero when the 95 percent credible interval
-crosses zero.
+the Gibbs sampler output of \code{\link{malmo_gibbs}}. By default,
+posterior mean estimates are set to zero when the 95 percent
+credible interval crosses zero.
 }
 \examples{
 \dontrun{
@@ -52,11 +58,12 @@ C_summary <- malmo_summarize(
 )
 C_est <- C_summary$mean
 
-## Summarize imputed Y
+## Summarize imputed Y (no zero thresholding)
 Y_summary <- malmo_summarize(
   result$Y_mvi_result,
-  nburn = 1000,
-  niter = 2000
+  nburn    = 1000,
+  niter    = 2000,
+  set_zero = FALSE
 )
 Y_mvi <- Y_summary$mean
 }

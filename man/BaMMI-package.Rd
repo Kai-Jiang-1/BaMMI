@@ -19,4 +19,9 @@ Useful links:
 \author{
 \strong{Maintainer}: Kai Jiang \email{Kai.Jiang@uth.tmc.edu}
 
+Authors:
+\itemize{
+  \item Kai Jiang \email{Kai.Jiang@uth.tmc.edu}
+}
+
 }
