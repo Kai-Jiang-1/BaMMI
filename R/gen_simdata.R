@@ -32,7 +32,7 @@
 #'
 #' @examples
 #' ## Generate simulation data with correlated covariates
-#' ## n = 100 observations, p = 10 microbiome features
+#' ## n = 50 observations, p = 100 microbiome features
 #'
 #' n <- 50
 #' p <- 100

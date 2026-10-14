@@ -42,7 +42,7 @@ and selected beta coefficients.
 \donttest{
 set.seed(123)
 mydata <- gen_missing_value(
-  n = 100, p = 200, snr = 1,
+  n = 200, p = 200, snr = 1,
   proportion = 0.30,
   type = "mnar0.33"
 )

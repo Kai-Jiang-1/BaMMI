@@ -32,15 +32,21 @@ library(BaMMI)
 
 set.seed(123)
 mydata <- gen_missing_value(
-  n = 100, p = 200, snr = 1,
+  n = 200, p = 200, snr = 1,
   proportion = 0.30, type = "mnar0.33"
 )
 
+X <- scale(mydata$X)
+Y <- as.matrix(mydata$Y_miss)
+n <- nrow(X)
+p <- ncol(X)
+N <- rbind(diag(p), matrix(100, nrow = 1, ncol = p))
+
 bsrmm <- bsrmmgibbs(
-  nburnin = 10000, niter = 20000,
-  p = p, nop = nop,
+  nburnin = 5000, niter = 10000,
+  p = p, nop = floor(n / 2),
   Y = Y, X = X, N = N,
-  a = a, Q = mydata$Q, n = n
+  a = rep(-12, p), Q = mydata$Q, n = n
 )
 ```
 
@@ -64,14 +70,17 @@ result <- malmo_gibbs(
 If you use BaMMI in your research, please cite the following papers:
 
 **BSRMM**:
-```
-Jiang, K., Saha, S., and Peterson, C. B. (2026). Bayesian sparse regression for microbiome–metabolite data integration. *Statistics in Medicine*, 45(13–14), e70607. [https://doi.org/10.1002/sim.70607](https://doi.org/10.1002/sim.70607)
-```
 
-**MALMO** (in preparation):
-```
-Jiang, K. and Peterson, C. B. Microbiome association with left‑censored and missing metabolic outputs. *Biostatistics* (under revision).
-```
+- Jiang, K., Saha, S., and Peterson, C. B. (2026). Bayesian sparse
+  regression for microbiome–metabolite data integration. *Statistics in
+  Medicine*, 45(13–14), e70607. <https://doi.org/10.1002/sim.70607>
+
+**MALMO**:
+
+- Jiang, K. and Peterson, C. B. Microbiome association with
+  left‑censored and missing metabolic outputs. *Biostatistics* (under
+  revision).
+
 ## Contact
 
 - **Author**: Kai Jiang

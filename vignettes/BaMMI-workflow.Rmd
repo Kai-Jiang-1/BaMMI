@@ -57,7 +57,7 @@ The `gen_missing_value()` function returns log-transformed microbial composition
 ```{r bsrmm_sim}
 set.seed(123)
 mydata <- gen_missing_value(
-  n          = 100,   # number of observations
+  n          = 200,   # number of observations
   p          = 200,   # number of microbiome features
   snr        = 1,     # signal to noise ratio
   proportion = 0.30,  # proportion of missing values
@@ -72,7 +72,7 @@ cat("Missing proportion:", mean(mydata$Y_miss == 0), "\n")
 
 ### 3.2 Data Preparation
 
-Before running the BSRMM model, we standardize the predictors, split the data into training and testing sets, and set up the model parameters. The training set is used to fit the BSRMM model, while the test set is used for evaluating predictive performance.
+Before running the BSRMM model, we standardize the predictors, split the data into training and testing sets, and set up the model parameters. The training set is used to fit the BSRMM model.
 
 ```{r bsrmm_prep}
 ## Prepare inputs
@@ -118,10 +118,13 @@ cat("Test set: n =", nrow(predictor_test), "\n")
 The `bsrmmgibbs()` function runs the Gibbs sampler for the BSRMM model.
 
 ```{r bsrmm_run}
+nburnin <- 5000
+niter   <- 10000
+
 set.seed(123)
 bsrmm <- bsrmmgibbs(
-  nburnin = 5000,
-  niter   = 10000,
+  nburnin = nburnin,
+  niter   = niter,
   p       = p,
   nop     = nop,
   Y       = Y,
@@ -140,8 +143,6 @@ bsrmm <- bsrmmgibbs(
 
 ```{r bsrmm_ppi}
 ## Compute PPI
-nburnin <- 5000
-niter   <- 10000
 PPI      <- colMeans(bsrmm$gamma[(nburnin+2):(nburnin+niter+1), ])
 selected <- which(PPI > 0.5)
 
@@ -155,7 +156,7 @@ tab <- table(
 print(tab)
 ```
 
-### We provide two functions to visualize the results of BSRMM: `bsrmm_ppi()` for plotting the PPI of each feature, and `bsrmm_forest()` for plotting the posterior mean and credible intervals of the regression coefficients for the selected features.
+We provide two functions to visualize the results of BSRMM: `bsrmm_ppi()` for plotting the PPI of each feature, and `bsrmm_forest()` for plotting the posterior mean and credible intervals of the regression coefficients for the selected features.
 
 #### PPI Plot
 
@@ -176,19 +177,22 @@ Gelman-Rubin Rhat statistic. Values close to 1 indicate convergence.
 
 ```{r bsrmm_diag, fig.width = 10, fig.height = 8}
 ## Run 2 chains for demonstration
-chain1 <- bsrmmgibbs(nburnin=5000, niter=10000, p=p, nop=nop,
+set.seed(123)
+
+chain1 <- bsrmmgibbs(nburnin= nburnin, niter= niter, p=p, nop=nop,
                      Y=Y, X=X, N=N, a=a, Q=Q, n=n)
-chain2 <- bsrmmgibbs(nburnin=5000, niter=10000, p=p, nop=nop,
+chain2 <- bsrmmgibbs(nburnin= nburnin, niter= niter, p=p, nop=nop,
                      Y=Y, X=X, N=N, a=a, Q=Q, n=n)
 
 diag_result <- bsrmm_diagnostic(
   bsrmm_list = list(chain1, chain2),
-  nburnin    = 5000,
-  niter      = 10000
+  nburnin    = nburnin,
+  niter      = niter
 )
 ```
 
 All parameters show Rhat values close to 1, indicating good convergence of the MCMC chains.
+
 ---
 
 ## 4. Project 2: MALMO
@@ -257,7 +261,7 @@ tab_mv <- table(
 print(tab_mv)
 ```
 
-### In this package, we include several functions to help users visualize results from MALMO, including exploratory analysis. The function `malmo_plot_correlation()` provides an overall overview of the correlations among outcomes and between outcomes and predictors. The function `malmo_plot_venn()` is designed to show the overlap of selected features across different outcomes. If the number of outcomes is greater than 3, the function returns an UpSet plot instead of a Venn diagram.
+In this package, we include several functions to help users visualize results from MALMO, including exploratory analysis. The function `malmo_plot_correlation()` provides an overall overview of the correlations among outcomes and between outcomes and predictors. The function `malmo_plot_venn()` is designed to show the overlap of selected features across different outcomes. If the number of outcomes is greater than 3, the function returns an UpSet plot instead of a Venn diagram.
 
 #### Correlation Heatmaps
 
