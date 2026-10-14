@@ -64,13 +64,14 @@ result <- malmo_gibbs(
 If you use BaMMI in your research, please cite the following papers:
 
 **BSRMM**:
-
-    Jiang, K., Saha, S., and Peterson, C. B. (2026). Bayesian sparse regression for microbiome–metabolite data integration. *Statistics in Medicine*, 45(13–14), e70607. [https://doi.org/10.1002/sim.70607](https://doi.org/10.1002/sim.70607)
+```
+Jiang, K., Saha, S., and Peterson, C. B. (2026). Bayesian sparse regression for microbiome–metabolite data integration. *Statistics in Medicine*, 45(13–14), e70607. [https://doi.org/10.1002/sim.70607](https://doi.org/10.1002/sim.70607)
+```
 
 **MALMO** (in preparation):
-
-    Jiang, K. and Peterson, C. B. Microbiome association with left‑censored and missing metabolic outputs. *Biostatistics* (under revision).
-
+```
+Jiang, K. and Peterson, C. B. Microbiome association with left‑censored and missing metabolic outputs. *Biostatistics* (under revision).
+```
 ## Contact
 
 - **Author**: Kai Jiang
