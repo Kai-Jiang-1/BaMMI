@@ -106,7 +106,7 @@ c   <- 100
 N   <- rbind(diag(x = 1, nrow = p, ncol = p),
              matrix(data = c, nrow = 1, ncol = p))
 Q   <- mydata$Q
-a0  <- -12
+a0  <- -8
 a   <- rep(a0, p)
 nop <- floor(n / 2)
 
@@ -161,19 +161,15 @@ We provide two functions to visualize the results of BSRMM: `bsrmm_ppi()` for pl
 
 #### PPI Plot
 
-By default, `bsrmm_ppi()` plots only the selected features (PPI > `threshold`), ranked by PPI.
+The plot below shows the PPI of all features, with the true features marked by blue triangles. Features with PPI above `threshold` (default 0.5) are selected and shown in red.
 
 ```{r bsrmm_ppi_plot, fig.width = 9, fig.height = 5}
-bsrmm_ppi(bsrmm, nburnin = nburnin, niter = niter)
-```
-
-Use the `features` argument to choose which features to plot: `"all"` for every feature, or a vector of indices such as `1:100`. When more than `max_bar` (default 50) features are plotted, a needle plot against the feature index is drawn instead of a bar plot. For simulated data, the true features can be passed through `true_features`; they are marked with blue triangles and the summary reports true and false positives.
-
-```{r bsrmm_ppi_all, fig.width = 9, fig.height = 5}
 bsrmm_ppi(bsrmm, nburnin = nburnin, niter = niter,
           features      = "all",
           true_features = which(mydata$coeffs[, 1] != 0))
 ```
+
+You can also choose which features to display through the `features` argument: `"selected"` (the default) shows only the selected features, and a vector of indices such as `features = 1:100` shows only those features. When more than `max_bar` (default 50) features are plotted, a needle plot against the feature index is drawn instead of a bar plot.
 
 #### Forest Plot
 
