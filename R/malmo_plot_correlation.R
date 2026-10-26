@@ -30,7 +30,7 @@
 #' set.seed(123)
 #' mydata <- gen_missing_value_mv(
 #'   n = 50, p = 100, q = 3, snr = 1,
-#'   proportion = 0.20, type = "mnar0.33"
+#'   proportion = 0.20, mnar_ratio = 1/3
 #' )
 #' malmo_plot_correlation(
 #'   Y = mydata$Y_true,

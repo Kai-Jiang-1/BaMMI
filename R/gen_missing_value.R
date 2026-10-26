@@ -13,15 +13,16 @@
 #' @param snr Numeric. Signal-to-noise ratio controlling the noise level.
 #' @param proportion Numeric. Proportion of missing values (between 0 and 1,
 #'   exclusive).
-#' @param type Character. Missing data mechanism, one of:
-#'   \itemize{
-#'     \item \code{"mnar"} - Missing Not At Random (missing due to
-#'       concentration values lower than the limit of detection.)
-#'     \item \code{"mar"} - Missing At Random (value is greater than LOD
-#'       but missing due to technical issues.)
-#'     \item \code{"mnar0.33"} - Mixed: 1/3 MNAR + 2/3 MAR
-#'     \item \code{"mnar0.67"} - Mixed: 2/3 MNAR + 1/3 MAR
-#'   }
+#' @param mnar_ratio Numeric between 0 and 1. Fraction of the missing
+#'   values that are Missing Not At Random (MNAR, i.e. below the limit of
+#'   detection); the remaining \code{1 - mnar_ratio} are Missing At Random
+#'   (MAR, above the LOD but missing due to technical issues). For example,
+#'   \code{mnar_ratio = 1} gives pure MNAR, \code{0} gives pure MAR and
+#'   \code{0.25} gives 25\% MNAR + 75\% MAR. If supplied, it overrides
+#'   \code{type}.
+#' @param type Character. Legacy shortcut for \code{mnar_ratio}, one of
+#'   \code{"mnar"} (1), \code{"mar"} (0), \code{"mnar0.33"} (1/3) or
+#'   \code{"mnar0.67"} (2/3). Ignored when \code{mnar_ratio} is given.
 #'
 #' @return A list containing:
 #' \describe{
@@ -33,7 +34,11 @@
 #'     microbiome features.}
 #'   \item{Y_miss}{A numeric vector of length n. Outcome with missing
 #'     values set to 0.}
-#'   \item{data_type}{Character. The missing data mechanism used.}
+#'   \item{data_type}{Character. Label of the missing data mechanism
+#'     used, e.g. \code{"mnar0.25"}.}
+#'   \item{mnar_ratio}{Numeric. Fraction of missing values that are MNAR.}
+#'   \item{mnar_idx}{Integer vector. Indices of the MNAR missing values.}
+#'   \item{mar_idx}{Integer vector. Indices of the MAR missing values.}
 #'   \item{Q}{A p x p matrix encoding prior correlation information for
 #'     the Bayesian sparse regression model.}
 #'   \item{sigma}{Numeric. Noise standard deviation used for the outcome.}
@@ -42,22 +47,22 @@
 #' @export
 #'
 #' @examples
-#' ## Generate correlated microbiome data with MNAR0.33 missing mechanism
+#' ## Generate correlated microbiome data with 1/3 MNAR + 2/3 MAR missingness
 #' set.seed(123)
 #' mydata <- gen_missing_value(
 #'   n = 200, p = 200, snr = 1,
 #'   proportion = 0.30,
-#'   type = "mnar0.33"
+#'   mnar_ratio = 1/3
 #' )
 #' str(mydata)
 #' which(mydata$coeffs[, 1] == 1)
 #'
-#' ## MAR missing mechanism
+#' ## Pure MAR missingness
 #' set.seed(123)
 #' mydata_mar <- gen_missing_value(
 #'   n = 200, p = 200, snr = 1,
 #'   proportion = 0.30,
-#'   type = "mar"
+#'   mnar_ratio = 0
 #' )
 #' str(mydata_mar)
 gen_missing_value <- function(
@@ -65,7 +70,8 @@ gen_missing_value <- function(
     p,
     snr,
     proportion,
-    type = c("mnar", "mar", "mnar0.33", "mnar0.67")
+    mnar_ratio = NULL,
+    type       = NULL
 ) {
 
   ## Input validation ----
@@ -81,9 +87,7 @@ gen_missing_value <- function(
   if (proportion <= 0 || proportion >= 1) {
     stop("proportion must be strictly between 0 and 1.")
   }
-  if (!type %in% c("mnar", "mar", "mnar0.33", "mnar0.67")) {
-    stop('type must be one of "mnar", "mar", "mnar0.33", "mnar0.67".')
-  }
+  mech <- .resolve_mnar_ratio(type, mnar_ratio)
 
   ## Block indices (proportional to p) ----
   step         <- max(1, round(20 * p / 1000))
@@ -171,33 +175,8 @@ gen_missing_value <- function(
 
   ## Missing value generation ----
   Y_miss <- Y_true
-
-  if (type == "mnar") {
-    lod         <- quantile(Y_true, probs = proportion)
-    missing_idx <- which(Y_miss < lod)
-
-  } else if (type == "mar") {
-    lod         <- min(Y_true)
-    missing_idx <- sample(n, floor(n * proportion))
-
-  } else if (type == "mnar0.33") {
-    cutoff      <- proportion / 3
-    lod         <- quantile(Y_true, probs = cutoff)
-    mnar_idx    <- which(Y_true < lod)
-    remaining   <- setdiff(1:n, mnar_idx)
-    mar_idx     <- sample(remaining, floor((proportion - cutoff) * n))
-    missing_idx <- c(mnar_idx, mar_idx)
-
-  } else if (type == "mnar0.67") {
-    cutoff      <- (2 * proportion) / 3
-    lod         <- quantile(Y_true, probs = cutoff)
-    mnar_idx    <- which(Y_true < lod)
-    remaining   <- setdiff(1:n, mnar_idx)
-    mar_idx     <- sample(remaining, floor((proportion - cutoff) * n))
-    missing_idx <- c(mnar_idx, mar_idx)
-  }
-
-  Y_miss[missing_idx] <- 0
+  miss   <- .gen_missing_idx(Y_true, proportion, mech$mnar_ratio)
+  Y_miss[miss$missing_idx] <- 0
 
   ## Q matrix ----
   Q <- 0.002 * (matrix(1, nrow = p, ncol = p) - diag(1, p))
@@ -236,7 +215,10 @@ gen_missing_value <- function(
     Y_true    = Y_true,
     X         = X,
     Y_miss    = Y_miss,
-    data_type = type,
+    data_type  = mech$label,
+    mnar_ratio = mech$mnar_ratio,
+    mnar_idx   = miss$mnar_idx,
+    mar_idx    = miss$mar_idx,
     Q         = Q,
     sigma     = sigma
   ))

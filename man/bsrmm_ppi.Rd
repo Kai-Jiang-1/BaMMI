@@ -4,7 +4,16 @@
 \alias{bsrmm_ppi}
 \title{Posterior Probability of Inclusion Plot}
 \usage{
-bsrmm_ppi(bsrmm, nburnin, niter, threshold = 0.5)
+bsrmm_ppi(
+  bsrmm,
+  nburnin,
+  niter,
+  threshold = 0.5,
+  features = "selected",
+  sort = NULL,
+  true_features = NULL,
+  max_bar = 50
+)
 }
 \arguments{
 \item{bsrmm}{List. Output from \code{\link{bsrmmgibbs}}.}
@@ -15,18 +24,38 @@ bsrmm_ppi(bsrmm, nburnin, niter, threshold = 0.5)
 
 \item{threshold}{Numeric. PPI threshold for feature selection.
 Default is 0.5.}
+
+\item{features}{Which features to plot: \code{"selected"} (default,
+features with PPI > \code{threshold}), \code{"all"}, or an integer
+vector of feature indices, e.g. \code{1:100}.}
+
+\item{sort}{Logical. If \code{TRUE}, features are ordered by decreasing
+PPI; if \code{FALSE}, by feature index. Default \code{NULL} sorts only
+when \code{features = "selected"}.}
+
+\item{true_features}{Optional integer vector of true feature indices
+(e.g. from simulated data). These are marked with a triangle on the
+plot and used to report true/false positives. Default \code{NULL}.}
+
+\item{max_bar}{Integer. Maximum number of features drawn as a labelled
+bar plot; above this a needle plot is used. Default is 50.}
 }
 \value{
-A list containing:
+Invisibly, a list containing:
 \describe{
 \item{PPI}{Numeric vector of posterior probabilities of inclusion
 for all features.}
 \item{selected}{Integer vector of selected feature indices.}
+\item{plotted}{Integer vector of plotted feature indices, in plot
+order.}
 }
 }
 \description{
-Produces a bar plot of posterior probabilities of inclusion (PPI)
-for selected features only, with vertical feature index labels.
+Plots posterior probabilities of inclusion (PPI) from a BSRMM fit.
+By default only the selected features are shown, but any subset of
+features (or all of them) can be plotted via \code{features}. Up to
+\code{max_bar} features are drawn as a labelled bar plot; larger sets
+are drawn as a needle plot against the feature index.
 }
 \examples{
 \donttest{
@@ -34,7 +63,7 @@ set.seed(123)
 mydata <- gen_missing_value(
   n = 200, p = 200, snr = 1,
   proportion = 0.30,
-  type = "mnar0.33"
+  mnar_ratio = 1/3
 )
 predictor <- mydata$X
 outcome   <- mydata$Y_miss
@@ -54,7 +83,18 @@ Q <- mydata$Q; a <- rep(-12, p); nop <- floor(n / 2)
 nburnin <- 1000; niter <- 2000
 bsrmm <- bsrmmgibbs(nburnin=nburnin, niter=niter, p=p, nop=nop,
   Y=Y, X=X, N=N, a=a, Q=Q, n=n, display=FALSE)
+
+## Selected features only (default)
 ppi_result <- bsrmm_ppi(bsrmm, nburnin, niter)
+
+## All features, marking the true ones
+true_idx <- which(mydata$coeffs[, 1] == 1)
+bsrmm_ppi(bsrmm, nburnin, niter, features = "all",
+          true_features = true_idx)
+
+## First 100 features only
+bsrmm_ppi(bsrmm, nburnin, niter, features = 1:100,
+          true_features = true_idx)
 }
 }
 \seealso{

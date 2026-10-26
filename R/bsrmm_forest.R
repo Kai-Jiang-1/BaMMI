@@ -34,7 +34,7 @@
 #' mydata <- gen_missing_value(
 #'   n = 200, p = 200, snr = 1,
 #'   proportion = 0.30,
-#'   type = "mnar0.33"
+#'   mnar_ratio = 1/3
 #' )
 #' predictor <- mydata$X
 #' outcome   <- mydata$Y_miss

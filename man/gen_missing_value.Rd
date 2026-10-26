@@ -4,13 +4,7 @@
 \alias{gen_missing_value}
 \title{Generate Simulation Data with Missing Values}
 \usage{
-gen_missing_value(
-  n,
-  p,
-  snr,
-  proportion,
-  type = c("mnar", "mar", "mnar0.33", "mnar0.67")
-)
+gen_missing_value(n, p, snr, proportion, mnar_ratio = NULL, type = NULL)
 }
 \arguments{
 \item{n}{Integer. Number of observations. Must be at least 10.}
@@ -22,15 +16,17 @@ gen_missing_value(
 \item{proportion}{Numeric. Proportion of missing values (between 0 and 1,
 exclusive).}
 
-\item{type}{Character. Missing data mechanism, one of:
-\itemize{
-\item \code{"mnar"} - Missing Not At Random (missing due to
-concentration values lower than the limit of detection.)
-\item \code{"mar"} - Missing At Random (value is greater than LOD
-but missing due to technical issues.)
-\item \code{"mnar0.33"} - Mixed: 1/3 MNAR + 2/3 MAR
-\item \code{"mnar0.67"} - Mixed: 2/3 MNAR + 1/3 MAR
-}}
+\item{mnar_ratio}{Numeric between 0 and 1. Fraction of the missing
+values that are Missing Not At Random (MNAR, i.e. below the limit of
+detection); the remaining \code{1 - mnar_ratio} are Missing At Random
+(MAR, above the LOD but missing due to technical issues). For example,
+\code{mnar_ratio = 1} gives pure MNAR, \code{0} gives pure MAR and
+\code{0.25} gives 25\\% MNAR + 75\\% MAR. If supplied, it overrides
+\code{type}.}
+
+\item{type}{Character. Legacy shortcut for \code{mnar_ratio}, one of
+\code{"mnar"} (1), \code{"mar"} (0), \code{"mnar0.33"} (1/3) or
+\code{"mnar0.67"} (2/3). Ignored when \code{mnar_ratio} is given.}
 }
 \value{
 A list containing:
@@ -43,7 +39,11 @@ missing values.}
 microbiome features.}
 \item{Y_miss}{A numeric vector of length n. Outcome with missing
 values set to 0.}
-\item{data_type}{Character. The missing data mechanism used.}
+\item{data_type}{Character. Label of the missing data mechanism
+used, e.g. \code{"mnar0.25"}.}
+\item{mnar_ratio}{Numeric. Fraction of missing values that are MNAR.}
+\item{mnar_idx}{Integer vector. Indices of the MNAR missing values.}
+\item{mar_idx}{Integer vector. Indices of the MAR missing values.}
 \item{Q}{A p x p matrix encoding prior correlation information for
 the Bayesian sparse regression model.}
 \item{sigma}{Numeric. Noise standard deviation used for the outcome.}
@@ -56,22 +56,22 @@ real-world microbiome data with block correlation structure and
 multiple missing data mechanisms.
 }
 \examples{
-## Generate correlated microbiome data with MNAR0.33 missing mechanism
+## Generate correlated microbiome data with 1/3 MNAR + 2/3 MAR missingness
 set.seed(123)
 mydata <- gen_missing_value(
   n = 200, p = 200, snr = 1,
   proportion = 0.30,
-  type = "mnar0.33"
+  mnar_ratio = 1/3
 )
 str(mydata)
 which(mydata$coeffs[, 1] == 1)
 
-## MAR missing mechanism
+## Pure MAR missingness
 set.seed(123)
 mydata_mar <- gen_missing_value(
   n = 200, p = 200, snr = 1,
   proportion = 0.30,
-  type = "mar"
+  mnar_ratio = 0
 )
 str(mydata_mar)
 }

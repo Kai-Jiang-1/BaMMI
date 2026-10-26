@@ -63,7 +63,7 @@ are low-rank factor matrices.
 set.seed(123)
 mydata <- gen_missing_value_mv(
   n = 100, p = 200, q = 3, snr = 1,
-  proportion = 0.20, type = "mnar0.33"
+  proportion = 0.20, mnar_ratio = 1/3
 )
 
 ## Prepare inputs

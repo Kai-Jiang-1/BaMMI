@@ -76,7 +76,7 @@
 #' mydata <- gen_missing_value(
 #'   n = 200, p = 200, snr = 1,
 #'   proportion = 0.30,
-#'   type = "mnar0.33"
+#'   mnar_ratio = 1/3
 #' )
 #'
 #' ## Prepare inputs
