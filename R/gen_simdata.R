@@ -1,8 +1,9 @@
 #' Generate Simulation Predictors
 #'
-#' This function generates simulated microbiome data with correlated covariates
-#' for Bayesian sparse regression models, using a multivariate normal
-#' distribution to introduce correlation structure among features.
+#' Internal helper used by \code{gen_missing_value()}. It generates
+#' simulated microbiome data with correlated covariates for Bayesian sparse
+#' regression models, using a multivariate normal distribution to introduce
+#' correlation structure among features.
 #'
 #' @importFrom stats rnorm
 #' @importFrom MASS mvrnorm
@@ -28,23 +29,8 @@
 #'   \item{epsilon}{A numeric vector of length n, the generated noise.}
 #' }
 #'
-#' @export
-#'
-#' @examples
-#' ## Generate simulation data with correlated covariates
-#' ## n = 50 observations, p = 100 microbiome features
-#'
-#' n <- 50
-#' p <- 100
-#' gamma <- rbinom(p, 1, 0.3)
-#' b <- rnorm(p, mean = 0, sd = 1)
-#' theta <- rep(0, p)
-#' sigmaX <- rep(1, p)
-#' rho <- 0.5
-#' Xcor <- rho^abs(outer(1:p, 1:p, "-"))
-#' sigma <- 0.5
-#' result <- gen_simdata(n, gamma, b, theta, sigmaX, Xcor, sigma)
-#' str(result)
+#' @keywords internal
+#' @noRd
 gen_simdata <- function(n, gamma, b, theta, sigmaX, Xcor, sigma) {
   beta <- gamma * b
   X <- MASS::mvrnorm(n = n, mu = theta,
