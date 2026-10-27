@@ -7,7 +7,6 @@
 #'
 #' @importFrom stats density
 #' @importFrom coda mcmc mcmc.list gelman.diag effectiveSize
-#' @importFrom grDevices dev.new graphics.off adjustcolor
 #' @importFrom graphics abline axis barplot layout legend lines mtext par plot.new points text
 #'
 #' @param bsrmm_list List. A list of at least 2 outputs from
@@ -110,17 +109,6 @@ bsrmm_diagnostic <- function(bsrmm_list, nburnin, niter,
   ## Save and restore graphics state on exit ----
   old_par <- par(no.readonly = TRUE)
   on.exit(par(old_par))
-
-  # Reset graphics state
-  graphics.off()
-  dev.new()
-
-  n_rhat  <- 2 + length(selected)
-  layout(matrix(c(1, 2, 3,
-                  4, 5, 6,
-                  7, 7, 7),
-                nrow = 3, byrow = TRUE))
-  par(mar = c(4, 4, 3, 1), oma = c(0, 0, 4, 0))
 
   ## Layout ----
   # Row 1: trace plots     (sigma2, theta)
