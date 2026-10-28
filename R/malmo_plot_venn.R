@@ -112,8 +112,10 @@ malmo_plot_venn <- function(C_summary) {
               col    = adjustcolor(accent_col, alpha.f = 0.3),
               border = accent_col,
               lwd    = 2)
-      text(cx[j] + r * 1.15 * cos(pi/2 + (j-1) * 2*pi/q),
-           cy[j] + r * 1.15 * sin(pi/2 + (j-1) * 2*pi/q),
+      # Place label outside the circle, pointing away from the diagram center
+      ang <- atan2(cy[j] - mean(cy), cx[j] - mean(cx))
+      text(cx[j] + r * 1.2 * cos(ang),
+           cy[j] + r * 1.2 * sin(ang),
            paste0("Y", j, "\n(n=", length(selected_per_outcome[[j]]), ")"),
            cex  = 0.9,
            font = 2,
