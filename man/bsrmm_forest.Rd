@@ -7,7 +7,7 @@
 bsrmm_forest(bsrmm, nburnin, niter, stand, threshold = 0.5)
 }
 \arguments{
-\item{bsrmm}{List. Output from \code{\link{bsrmmgibbs}}.}
+\item{bsrmm}{List. Output from \code{\link{bsrmm_gibbs}}.}
 
 \item{nburnin}{Integer. Number of burn-in iterations.}
 
@@ -32,7 +32,7 @@ interval bounds.}
 }
 \description{
 Produces a forest plot of posterior mean estimates and 95 percent
-credible intervals for features selected by \code{\link{bsrmmgibbs}}.
+credible intervals for features selected by \code{\link{bsrmm_gibbs}}.
 }
 \examples{
 \donttest{
@@ -58,12 +58,12 @@ n <- nrow(X); p <- ncol(X); c <- 100
 N <- rbind(diag(p), matrix(c, 1, p))
 Q <- mydata$Q; a <- rep(-12, p); nop <- floor(n / 2)
 nburnin <- 1000; niter <- 2000
-bsrmm <- bsrmmgibbs(nburnin=nburnin, niter=niter, p=p, nop=nop,
+bsrmm <- bsrmm_gibbs(nburnin=nburnin, niter=niter, p=p, nop=nop,
   Y=Y, X=X, N=N, a=a, Q=Q, n=n, display=FALSE)
 forest_result <- bsrmm_forest(bsrmm, nburnin, niter, stand)
 }
 }
 \seealso{
-\code{\link{bsrmmgibbs}}, \code{\link{bsrmm_diagnostic}},
+\code{\link{bsrmm_gibbs}}, \code{\link{bsrmm_diagnostic}},
 \code{\link{bsrmm_ppi}}
 }

@@ -1,7 +1,7 @@
 #' MCMC Diagnostics for Bayesian Sparse Regression
 #'
 #' Produces diagnostic plots and statistics for multiple chains from
-#' \code{\link{bsrmmgibbs}}, including trace plots, density plots,
+#' \code{\link{bsrmm_gibbs}}, including trace plots, density plots,
 #' and Gelman-Rubin Rhat convergence diagnostics for sigma2, theta,
 #' and selected beta coefficients.
 #'
@@ -10,11 +10,11 @@
 #' @importFrom graphics abline axis barplot layout legend lines mtext par plot.new points text
 #'
 #' @param bsrmm_list List. A list of at least 2 outputs from
-#'   \code{\link{bsrmmgibbs}}, each representing one chain.
+#'   \code{\link{bsrmm_gibbs}}, each representing one chain.
 #' @param nburnin Integer. Number of burn-in iterations used in
-#'   \code{\link{bsrmmgibbs}}.
+#'   \code{\link{bsrmm_gibbs}}.
 #' @param niter Integer. Number of posterior sampling iterations used
-#'   in \code{\link{bsrmmgibbs}}.
+#'   in \code{\link{bsrmm_gibbs}}.
 #' @param threshold Numeric. PPI threshold for feature selection used
 #'   to determine which beta coefficients to include in Rhat.
 #'   Default is 0.5.
@@ -30,7 +30,7 @@
 #'   \item{selected}{Integer vector of selected feature indices.}
 #' }
 #'
-#' @seealso \code{\link{bsrmmgibbs}}, \code{\link{bsrmm_forest}},
+#' @seealso \code{\link{bsrmm_gibbs}}, \code{\link{bsrmm_forest}},
 #'   \code{\link{bsrmm_ppi}}
 #'
 #' @export
@@ -61,9 +61,9 @@
 #' nburnin <- 1000; niter <- 2000
 #'
 #' ## Run multiple chains
-#' chain1 <- bsrmmgibbs(nburnin=nburnin, niter=niter, p=p, nop=nop,
+#' chain1 <- bsrmm_gibbs(nburnin=nburnin, niter=niter, p=p, nop=nop,
 #'   Y=Y, X=X, N=N, a=a, Q=Q, n=n, display=FALSE)
-#' chain2 <- bsrmmgibbs(nburnin=nburnin, niter=niter, p=p, nop=nop,
+#' chain2 <- bsrmm_gibbs(nburnin=nburnin, niter=niter, p=p, nop=nop,
 #'   Y=Y, X=X, N=N, a=a, Q=Q, n=n, display=FALSE)
 #'
 #' diag_result <- bsrmm_diagnostic(
@@ -77,7 +77,7 @@ bsrmm_diagnostic <- function(bsrmm_list, nburnin, niter,
 
   ## Input validation ----
   if (!is.list(bsrmm_list)) {
-    stop("bsrmm_list must be a list of bsrmmgibbs outputs.")
+    stop("bsrmm_list must be a list of bsrmm_gibbs outputs.")
   }
   if (length(bsrmm_list) < 2) {
     stop("bsrmm_list must contain at least 2 chains for diagnostics.")

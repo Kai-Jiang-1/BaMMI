@@ -8,13 +8,13 @@ bsrmm_diagnostic(bsrmm_list, nburnin, niter, threshold = 0.5)
 }
 \arguments{
 \item{bsrmm_list}{List. A list of at least 2 outputs from
-\code{\link{bsrmmgibbs}}, each representing one chain.}
+\code{\link{bsrmm_gibbs}}, each representing one chain.}
 
 \item{nburnin}{Integer. Number of burn-in iterations used in
-\code{\link{bsrmmgibbs}}.}
+\code{\link{bsrmm_gibbs}}.}
 
 \item{niter}{Integer. Number of posterior sampling iterations used
-in \code{\link{bsrmmgibbs}}.}
+in \code{\link{bsrmm_gibbs}}.}
 
 \item{threshold}{Numeric. PPI threshold for feature selection used
 to determine which beta coefficients to include in Rhat.
@@ -34,7 +34,7 @@ selected beta coefficient.}
 }
 \description{
 Produces diagnostic plots and statistics for multiple chains from
-\code{\link{bsrmmgibbs}}, including trace plots, density plots,
+\code{\link{bsrmm_gibbs}}, including trace plots, density plots,
 and Gelman-Rubin Rhat convergence diagnostics for sigma2, theta,
 and selected beta coefficients.
 }
@@ -64,9 +64,9 @@ Q <- mydata$Q; a <- rep(-12, p); nop <- floor(n / 2)
 nburnin <- 1000; niter <- 2000
 
 ## Run multiple chains
-chain1 <- bsrmmgibbs(nburnin=nburnin, niter=niter, p=p, nop=nop,
+chain1 <- bsrmm_gibbs(nburnin=nburnin, niter=niter, p=p, nop=nop,
   Y=Y, X=X, N=N, a=a, Q=Q, n=n, display=FALSE)
-chain2 <- bsrmmgibbs(nburnin=nburnin, niter=niter, p=p, nop=nop,
+chain2 <- bsrmm_gibbs(nburnin=nburnin, niter=niter, p=p, nop=nop,
   Y=Y, X=X, N=N, a=a, Q=Q, n=n, display=FALSE)
 
 diag_result <- bsrmm_diagnostic(
@@ -77,6 +77,6 @@ diag_result <- bsrmm_diagnostic(
 }
 }
 \seealso{
-\code{\link{bsrmmgibbs}}, \code{\link{bsrmm_forest}},
+\code{\link{bsrmm_gibbs}}, \code{\link{bsrmm_forest}},
 \code{\link{bsrmm_ppi}}
 }

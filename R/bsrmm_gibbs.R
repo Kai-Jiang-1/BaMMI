@@ -65,7 +65,7 @@
 #'     coefficients for all predictors.}
 #' }
 #'
-#' @seealso \code{\link{bsrmmbf}}, \code{\link{gen_missing_value}}
+#' @seealso \code{\link{bsrmm_bf}}, \code{\link{gen_missing_value}}
 #'
 #' @export
 #'
@@ -116,7 +116,7 @@
 #' niter   <- 10000
 #'
 #' ## Run Gibbs sampler
-#' bsrmm <- bsrmmgibbs(
+#' bsrmm <- bsrmm_gibbs(
 #'   nburnin = nburnin,
 #'   niter   = niter,
 #'   p       = p,
@@ -142,7 +142,7 @@
 #'   Truth     = mydata$coeffs[, 1]
 #' )
 #' print(tab)}
-bsrmmgibbs <- function(nburnin, niter, p, nop, Y, X, N, a, Q, n, tau = 1,
+bsrmm_gibbs <- function(nburnin, niter, p, nop, Y, X, N, a, Q, n, tau = 1,
                        display = FALSE) {
 
   ## Fixed hyperparameters ----
@@ -293,8 +293,8 @@ bsrmmgibbs <- function(nburnin, niter, p, nop, Y, X, N, a, Q, n, tau = 1,
       invAri3   <- invAitemp[tn, tn]
       invAri    <- invAri1 - invAri2 %*% t(invAri2) / invAri3
 
-      result1  <- bsrmmbf(Y, Xri, Xi, XIi, Tri, Ti, TIi, invAri,
-                          n, tau, nu, omega, flag, keep)
+      result1  <- bsrmm_bf(Y, Xri, Xi, XIi, Tri, Ti, TIi, invAri,
+                           n, tau, nu, omega, flag, keep)
       BF1      <- result1$BF1
       keep     <- result1$keep
 
@@ -348,8 +348,8 @@ bsrmmgibbs <- function(nburnin, niter, p, nop, Y, X, N, a, Q, n, tau = 1,
       Tri         <- N[, indxtemp]
       Ti          <- N[, proposeindx]
       TIi         <- cbind(Tri, Ti)
-      BayesResult <- bsrmmbf(Y, Xri, Xi, XIi, Tri, Ti, TIi, invAri,
-                             n, tau, nu, omega, flag, keep)
+      BayesResult <- bsrmm_bf(Y, Xri, Xi, XIi, Tri, Ti, TIi, invAri,
+                              n, tau, nu, omega, flag, keep)
       BF    <- BayesResult$BF
       keep  <- BayesResult$keep
       invAi <- BayesResult$invAi

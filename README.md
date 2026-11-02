@@ -42,7 +42,7 @@ n <- nrow(X)
 p <- ncol(X)
 N <- rbind(diag(p), matrix(100, nrow = 1, ncol = p))
 
-bsrmm <- bsrmmgibbs(
+bsrmm <- bsrmm_gibbs(
   nburnin = 5000, niter = 10000,
   p = p, nop = floor(n / 2),
   Y = Y, X = X, N = N,

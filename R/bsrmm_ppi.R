@@ -9,7 +9,7 @@
 #' @importFrom graphics abline axis barplot layout legend par plot
 #' @importFrom graphics plot.new points strwidth text
 #'
-#' @param bsrmm List. Output from \code{\link{bsrmmgibbs}}.
+#' @param bsrmm List. Output from \code{\link{bsrmm_gibbs}}.
 #' @param nburnin Integer. Number of burn-in iterations.
 #' @param niter Integer. Number of posterior sampling iterations.
 #' @param threshold Numeric. PPI threshold for feature selection.
@@ -35,7 +35,7 @@
 #'     order.}
 #' }
 #'
-#' @seealso \code{\link{bsrmmgibbs}}, \code{\link{bsrmm_diagnostic}},
+#' @seealso \code{\link{bsrmm_gibbs}}, \code{\link{bsrmm_diagnostic}},
 #'   \code{\link{bsrmm_forest}}
 #'
 #' @export
@@ -64,7 +64,7 @@
 #' N <- rbind(diag(p), matrix(c, 1, p))
 #' Q <- mydata$Q; a <- rep(-12, p); nop <- floor(n / 2)
 #' nburnin <- 1000; niter <- 2000
-#' bsrmm <- bsrmmgibbs(nburnin=nburnin, niter=niter, p=p, nop=nop,
+#' bsrmm <- bsrmm_gibbs(nburnin=nburnin, niter=niter, p=p, nop=nop,
 #'   Y=Y, X=X, N=N, a=a, Q=Q, n=n, display=FALSE)
 #'
 #' ## Selected features only (default)

@@ -2,7 +2,7 @@
 #'
 #' Computes the Bayes Factor (BF) for variable inclusion or exclusion
 #' in the Bayesian sparse regression model. This function is called
-#' internally by \code{\link{bsrmmgibbs}} at each iteration of the
+#' internally by \code{\link{bsrmm_gibbs}} at each iteration of the
 #' Gibbs sampler to evaluate whether a proposed variable should be
 #' included or excluded from the model.
 #'
@@ -55,14 +55,14 @@
 #'     constraint matrices.}
 #' }
 #'
-#' @seealso \code{\link{bsrmmgibbs}}
+#' @seealso \code{\link{bsrmm_gibbs}}
 #'
 #' @export
 #'
 #' @examples
-#' ## bsrmmbf is typically called internally by bsrmmgibbs
-#' ## See bsrmmgibbs for a complete working example
-bsrmmbf <- function(Y, Xri, Xi, XIi, Tri, Ti, TIi, invAri,
+#' ## bsrmm_bf is typically called internally by bsrmm_gibbs
+#' ## See bsrmm_gibbs for a complete working example
+bsrmm_bf <- function(Y, Xri, Xi, XIi, Tri, Ti, TIi, invAri,
                     n, tau, nu, omega, flag, keep) {
 
   keep  <- keep
